@@ -63,12 +63,16 @@ export const RoomBuilder = ({
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildStart, setBuildStart] = useState<{ x: number; y: number } | null>(null);
 
+  const snapToGrid = (value: number, gridSize: number = 25) => {
+    return Math.round(value / gridSize) * gridSize;
+  };
+
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAdmin || !activeTool || activeTool === 'delete') return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = snapToGrid(e.clientX - rect.left);
+    const y = snapToGrid(e.clientY - rect.top);
 
     setIsBuilding(true);
     setBuildStart({ x, y });
@@ -78,8 +82,8 @@ export const RoomBuilder = ({
     if (!isAdmin || !activeTool || !isBuilding || !buildStart) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = snapToGrid(e.clientX - rect.left);
+    const y = snapToGrid(e.clientY - rect.top);
 
     if (activeTool === 'wall') {
       const newWall: Wall = {
@@ -100,8 +104,8 @@ export const RoomBuilder = ({
         id: `door-${Date.now()}`,
         x: Math.min(buildStart.x, x),
         y: Math.min(buildStart.y, y),
-        width: Math.max(width, 30),
-        height: Math.max(height, 30),
+        width: Math.max(snapToGrid(width, 25), 25),
+        height: Math.max(snapToGrid(height, 25), 25),
         isLocked: false,
         isOpen: false,
         orientation,
