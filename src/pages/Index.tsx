@@ -406,6 +406,7 @@ const Index = () => {
                 isMuted={isMuted}
                 isDeafened={isDeafened}
                 proximityRange={proximityRange}
+                isAdmin={isAdmin}
               />
             )}
           </div>

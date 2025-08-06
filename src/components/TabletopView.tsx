@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mic, MicOff, Volume2, VolumeX, Users, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RoomBuilder, RoomElement } from "@/components/RoomBuilder";
+import { useRoomDetection } from "@/hooks/useRoomDetection";
 
 interface Player {
   id: string;
@@ -26,6 +28,7 @@ interface TabletopViewProps {
   isMuted: boolean;
   isDeafened: boolean;
   proximityRange: number;
+  isAdmin: boolean;
 }
 
 const PROXIMITY_RANGE = 150; // pixels
@@ -41,23 +44,34 @@ export const TabletopView = ({
   isMuted,
   isDeafened,
   proximityRange,
+  isAdmin
 }: TabletopViewProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
   const [isMoving, setIsMoving] = useState(false);
   const animationRef = useRef<number>();
+  const [roomElements, setRoomElements] = useState<RoomElement[]>([]);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId);
+  const rooms = useRoomDetection(players, roomElements, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // Calculate proximity-based volume
+  // Calculate proximity-based volume with room isolation
   const calculateProximity = useCallback((player1: Player, player2: Player) => {
+    // First check if players are in the same room
+    const player1Room = rooms.find(room => room.players.some(p => p.id === player1.id));
+    const player2Room = rooms.find(room => room.players.some(p => p.id === player2.id));
+    
+    if (!player1Room || !player2Room || player1Room.id !== player2Room.id) {
+      return 0; // Different rooms = no voice connection
+    }
+    
     const distance = Math.sqrt(
       Math.pow(player1.x - player2.x, 2) + Math.pow(player1.y - player2.y, 2)
     );
     
     if (distance > proximityRange) return 0;
     return Math.max(0, 1 - (distance / proximityRange));
-  }, []);
+  }, [proximityRange, rooms]);
 
   // Handle keyboard movement
   useEffect(() => {
@@ -145,11 +159,14 @@ export const TabletopView = ({
     onPlayerMove(currentPlayerId, newX, newY);
   };
 
-  // Get players within proximity
+  // Get players within proximity and same room
   const getPlayersInRange = useCallback(() => {
     if (!currentPlayer) return [];
     
-    return players.filter(p => {
+    const currentRoom = rooms.find(room => room.players.some(p => p.id === currentPlayerId));
+    if (!currentRoom) return [];
+    
+    return currentRoom.players.filter(p => {
       if (p.id === currentPlayerId) return false;
       const proximity = calculateProximity(currentPlayer, p);
       return proximity > 0;
@@ -157,9 +174,25 @@ export const TabletopView = ({
       ...p,
       proximity: calculateProximity(currentPlayer, p)
     }));
-  }, [players, currentPlayer, currentPlayerId, calculateProximity]);
+  }, [players, currentPlayer, currentPlayerId, calculateProximity, rooms]);
 
   const playersInRange = getPlayersInRange();
+
+  // Handle knocking on doors
+  const handleKnockDoor = (doorId: string, playerId: string) => {
+    setRoomElements(prev => prev.map(el => {
+      if (el.id === doorId && el.type === 'door') {
+        const door = el as any;
+        if (!door.knockRequests.includes(playerId)) {
+          return { ...door, knockRequests: [...door.knockRequests, playerId] };
+        }
+      }
+      return el;
+    }));
+  };
+
+  // Get current player's room info
+  const currentRoom = rooms.find(room => room.players.some(p => p.id === currentPlayerId));
 
   return (
     <div className="flex flex-col h-full">
@@ -175,6 +208,11 @@ export const TabletopView = ({
               <Users className="w-3 h-3" />
               {playersInRange.length} nearby
             </Badge>
+            {currentRoom && currentRoom.id !== 'room-outside' && (
+              <Badge variant="secondary" className="gap-1">
+                Room: {currentRoom.id.replace('room-', '')}
+              </Badge>
+            )}
           </div>
         </div>
         
@@ -196,15 +234,27 @@ export const TabletopView = ({
               style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
               onClick={handleCanvasClick}
             >
-              {/* Grid Background */}
+              {/* Enhanced Grid Background */}
               <div 
-                className="absolute inset-0 opacity-10"
+                className="absolute inset-0 opacity-20"
                 style={{
                   backgroundImage: `
                     linear-gradient(hsl(var(--border)) 1px, transparent 1px),
                     linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
                   `,
-                  backgroundSize: '50px 50px'
+                  backgroundSize: '25px 25px'
+                }}
+              />
+              
+              {/* Major grid lines */}
+              <div 
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(hsl(var(--border)) 2px, transparent 2px),
+                    linear-gradient(90deg, hsl(var(--border)) 2px, transparent 2px)
+                  `,
+                  backgroundSize: '100px 100px'
                 }}
               />
 
@@ -308,6 +358,17 @@ export const TabletopView = ({
                   </div>
                 </div>
               )}
+
+              {/* Room Builder Component */}
+              <RoomBuilder
+                isAdmin={isAdmin}
+                elements={roomElements}
+                onElementsChange={setRoomElements}
+                onKnockDoor={handleKnockDoor}
+                currentPlayerId={currentPlayerId}
+                canvasWidth={CANVAS_WIDTH}
+                canvasHeight={CANVAS_HEIGHT}
+              />
             </div>
           </Card>
 
