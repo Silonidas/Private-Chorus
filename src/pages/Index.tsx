@@ -3,6 +3,7 @@ import { ChannelList } from "@/components/ChannelList";
 import { UserProfile } from "@/components/UserProfile";
 import { TabletopView } from "@/components/TabletopView";
 import { SettingsDialog } from "@/components/SettingsDialog";
+import { AdminMenu } from "@/components/AdminMenu";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -45,6 +46,9 @@ const Index = () => {
   const [audioOutputVolume, setAudioOutputVolume] = useState(80);
   const [echoCancellation, setEchoCancellation] = useState(true);
   const [noiseSuppression, setNoiseSuppression] = useState(true);
+  
+  // User admin status (would come from authentication in real app)
+  const [isAdmin, setIsAdmin] = useState(true);
   
   // Tabletop view state
   const [players, setPlayers] = useState<Player[]>([
@@ -188,6 +192,35 @@ const Index = () => {
     });
   };
 
+  // Admin handlers
+  const handleManageUsers = () => {
+    toast({
+      title: "User Management",
+      description: "User management panel would open here.",
+    });
+  };
+
+  const handleServerSettings = () => {
+    toast({
+      title: "Server Settings",
+      description: "Server settings panel would open here.",
+    });
+  };
+
+  const handleModerationTools = () => {
+    toast({
+      title: "Moderation Tools",
+      description: "Moderation tools panel would open here.",
+    });
+  };
+
+  const handleChannelManagement = () => {
+    toast({
+      title: "Channel Management",
+      description: "Channel management panel would open here.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-dark">
       <div className="flex h-screen">
@@ -258,6 +291,7 @@ const Index = () => {
               onToggleMute={handleToggleMute}
               onToggleDeafen={handleToggleDeafen}
               onSettings={() => {}}
+              isAdmin={isAdmin}
               settingsDialog={
                 <SettingsDialog
                   proximityRange={proximityRange}
@@ -270,6 +304,14 @@ const Index = () => {
                   onEchoCancellationChange={setEchoCancellation}
                   noiseSuppression={noiseSuppression}
                   onNoiseSuppressionChange={setNoiseSuppression}
+                />
+              }
+              adminMenu={
+                <AdminMenu
+                  onManageUsers={handleManageUsers}
+                  onServerSettings={handleServerSettings}
+                  onModerationTools={handleModerationTools}
+                  onChannelManagement={handleChannelManagement}
                 />
               }
             />

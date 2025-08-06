@@ -15,6 +15,8 @@ interface UserProfileProps {
   onToggleDeafen: () => void;
   onSettings: () => void;
   settingsDialog?: React.ReactNode;
+  isAdmin?: boolean;
+  adminMenu?: React.ReactNode;
 }
 
 export const UserProfile = ({
@@ -27,7 +29,9 @@ export const UserProfile = ({
   onToggleMute,
   onToggleDeafen,
   onSettings,
-  settingsDialog
+  settingsDialog,
+  isAdmin = false,
+  adminMenu
 }: UserProfileProps) => {
   return (
     <div>
@@ -60,35 +64,39 @@ export const UserProfile = ({
           </div>
         </div>
 
-        {isConnected && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleMute}
-              className={cn(
-                "flex-1 transition-all",
-                isMuted && "bg-voice-muted/20 text-voice-muted hover:bg-voice-muted/30"
-              )}
-            >
-              {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleDeafen}
-              className={cn(
-                "flex-1 transition-all",
-                isDeafened && "bg-voice-deafened/20 text-voice-deafened hover:bg-voice-deafened/30"
-              )}
-            >
-              {isDeafened ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </Button>
+        <div className="flex items-center gap-2">
+          {isConnected && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleMute}
+                className={cn(
+                  "flex-1 transition-all",
+                  isMuted && "bg-voice-muted/20 text-voice-muted hover:bg-voice-muted/30"
+                )}
+              >
+                {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleDeafen}
+                className={cn(
+                  "flex-1 transition-all",
+                  isDeafened && "bg-voice-deafened/20 text-voice-deafened hover:bg-voice-deafened/30"
+                )}
+              >
+                {isDeafened ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </Button>
+            </>
+          )}
 
-            {settingsDialog}
-          </div>
-        )}
+          {settingsDialog}
+          
+          {isAdmin && adminMenu}
+        </div>
       </Card>
     </div>
   );
