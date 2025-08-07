@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChannelList } from "@/components/ChannelList";
 import { UserProfile } from "@/components/UserProfile";
 import { TabletopView } from "@/components/TabletopView";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { AdminMenu } from "@/components/AdminMenu";
-import { RoomElement } from "@/components/RoomBuilder";
-import { useRoomDetection } from "@/hooks/useRoomDetection";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -17,8 +15,6 @@ interface Channel {
   id: string;
   name: string;
   userCount: number;
-  isRoomChannel?: boolean;
-  roomId?: string;
 }
 
 interface Player {
@@ -55,7 +51,6 @@ const Index = () => {
   const [isAdmin, setIsAdmin] = useState(true);
   
   // Tabletop view state
-  const [roomElements, setRoomElements] = useState<RoomElement[]>([]);
   const [players, setPlayers] = useState<Player[]>([
     {
       id: "you",
@@ -86,29 +81,6 @@ const Index = () => {
     }
   ]);
 
-  // Room detection
-  const rooms = useRoomDetection(players, roomElements, 800, 600);
-
-  // Update channels based on detected rooms
-  useEffect(() => {
-    const baseChannels = [
-      { id: "1", name: "General", userCount: 3, isRoomChannel: false },
-      { id: "2", name: "Gaming", userCount: 1, isRoomChannel: false },
-    ];
-
-    const roomChannels = rooms
-      .filter(room => room.id !== 'room-outside')
-      .map(room => ({
-        id: `channel-${room.id}`,
-        name: room.id === 'room-outside' ? 'Outside' : `Room ${room.id.replace('room-', '')}`,
-        userCount: room.players.length,
-        isRoomChannel: true,
-        roomId: room.id
-      }));
-
-    setChannels([...baseChannels, ...roomChannels]);
-  }, [rooms]);
-
   const handleCreateChannel = (name: string) => {
     const newChannel: Channel = {
       id: Date.now().toString(),
@@ -126,18 +98,6 @@ const Index = () => {
     const channel = channels.find(c => c.id === channelId);
     if (channel) {
       setConnectedChannelId(channelId);
-      
-      // If it's a room channel, teleport player to that room
-      if (channel.isRoomChannel && channel.roomId) {
-        const room = rooms.find(r => r.id === channel.roomId);
-        if (room) {
-          const centerX = (room.bounds.minX + room.bounds.maxX) / 2;
-          const centerY = (room.bounds.minY + room.bounds.maxY) / 2;
-          handlePlayerMove("you", centerX, centerY);
-          setActiveView("tabletop");
-        }
-      }
-      
       setChannels(prev => prev.map(c => 
         c.id === channelId 
           ? { ...c, userCount: c.userCount + 1 }
@@ -145,7 +105,7 @@ const Index = () => {
       ));
       toast({
         title: "Connected",
-        description: `Connected to ${channel.name}`,
+        description: `Connected to "${channel.name}" voice channel.`,
       });
     }
   };
@@ -447,14 +407,6 @@ const Index = () => {
                 isDeafened={isDeafened}
                 proximityRange={proximityRange}
                 isAdmin={isAdmin}
-                roomElements={roomElements}
-                onRoomElementsChange={setRoomElements}
-                onRoomClick={(roomId) => {
-                  const channel = channels.find(c => c.roomId === roomId);
-                  if (channel) {
-                    handleConnectToChannel(channel.id);
-                  }
-                }}
               />
             )}
           </div>
