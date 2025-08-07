@@ -51,6 +51,8 @@ interface RoomBuilderProps {
 
 type BuildTool = 'wall' | 'door' | 'delete' | null;
 
+const GRID_SIZE = 25;
+
 export const RoomBuilder = ({
   isAdmin,
   elements,
@@ -64,6 +66,7 @@ export const RoomBuilder = ({
   const [activeTool, setActiveTool] = useState<BuildTool>(null);
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildStart, setBuildStart] = useState<{ x: number; y: number } | null>(null);
+  const [currentPreview, setCurrentPreview] = useState<{ x: number; y: number } | null>(null);
   
   // Notify parent when building state changes
   const updateBuildingState = (building: boolean) => {
@@ -71,8 +74,8 @@ export const RoomBuilder = ({
     onBuildingStateChange(building || activeTool !== null);
   };
 
-  const snapToGrid = (value: number, gridSize: number = 25) => {
-    return Math.round(value / gridSize) * gridSize;
+  const snapToGrid = (value: number) => {
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -84,6 +87,17 @@ export const RoomBuilder = ({
 
     updateBuildingState(true);
     setBuildStart({ x, y });
+    setCurrentPreview({ x, y });
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isAdmin || !activeTool || !isBuilding || !buildStart) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = snapToGrid(e.clientX - rect.left);
+    const y = snapToGrid(e.clientY - rect.top);
+
+    setCurrentPreview({ x, y });
   };
 
   const handleCanvasMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -92,6 +106,14 @@ export const RoomBuilder = ({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = snapToGrid(e.clientX - rect.left);
     const y = snapToGrid(e.clientY - rect.top);
+
+    // Don't create elements if start and end are the same
+    if (buildStart.x === x && buildStart.y === y) {
+      updateBuildingState(false);
+      setBuildStart(null);
+      setCurrentPreview(null);
+      return;
+    }
 
     if (activeTool === 'wall') {
       const newWall: Wall = {
@@ -106,14 +128,23 @@ export const RoomBuilder = ({
     } else if (activeTool === 'door') {
       const width = Math.abs(x - buildStart.x);
       const height = Math.abs(y - buildStart.y);
+      
+      // Ensure minimum door size of one grid unit
+      if (width < GRID_SIZE && height < GRID_SIZE) {
+        updateBuildingState(false);
+        setBuildStart(null);
+        setCurrentPreview(null);
+        return;
+      }
+      
       const orientation = width > height ? 'horizontal' : 'vertical';
       
       const newDoor: Door = {
         id: `door-${Date.now()}`,
         x: Math.min(buildStart.x, x),
         y: Math.min(buildStart.y, y),
-        width: Math.max(snapToGrid(width, 25), 25),
-        height: Math.max(snapToGrid(height, 25), 25),
+        width: Math.max(width, GRID_SIZE),
+        height: Math.max(height, GRID_SIZE),
         isLocked: false,
         isOpen: false,
         orientation,
@@ -125,6 +156,7 @@ export const RoomBuilder = ({
 
     updateBuildingState(false);
     setBuildStart(null);
+    setCurrentPreview(null);
     setActiveTool(null);
   };
 
@@ -171,6 +203,45 @@ export const RoomBuilder = ({
         : el
     );
     onElementsChange(updatedElements);
+  };
+
+  // Render preview while building
+  const renderPreview = () => {
+    if (!buildStart || !currentPreview || !activeTool || activeTool === 'delete') return null;
+
+    if (activeTool === 'wall') {
+      return (
+        <svg className="absolute inset-0 pointer-events-none" style={{ width: canvasWidth, height: canvasHeight }}>
+          <line
+            x1={buildStart.x}
+            y1={buildStart.y}
+            x2={currentPreview.x}
+            y2={currentPreview.y}
+            stroke="hsl(var(--primary))"
+            strokeWidth="4"
+            strokeDasharray="8,8"
+            opacity={0.7}
+          />
+        </svg>
+      );
+    }
+
+    if (activeTool === 'door') {
+      const width = Math.abs(currentPreview.x - buildStart.x);
+      const height = Math.abs(currentPreview.y - buildStart.y);
+      
+      return (
+        <div
+          className="absolute border-2 border-dashed border-primary bg-primary/20 pointer-events-none"
+          style={{
+            left: Math.min(buildStart.x, currentPreview.x),
+            top: Math.min(buildStart.y, currentPreview.y),
+            width: Math.max(width, GRID_SIZE),
+            height: Math.max(height, GRID_SIZE)
+          }}
+        />
+      );
+    }
   };
 
   if (!isAdmin) {
@@ -308,8 +379,12 @@ export const RoomBuilder = ({
           activeTool && "cursor-crosshair"
         )}
         onMouseDown={handleCanvasMouseDown}
+        onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
       >
+        {/* Render Preview */}
+        {renderPreview()}
+
         {/* Render Walls */}
         {elements.filter(el => el.type === 'wall').map(wall => {
           const w = wall as Wall;
