@@ -51,6 +51,7 @@ export const TabletopView = ({
   const [isMoving, setIsMoving] = useState(false);
   const animationRef = useRef<number>();
   const [roomElements, setRoomElements] = useState<RoomElement[]>([]);
+  const [isBuildingMode, setIsBuildingMode] = useState(false);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId);
   const rooms = useRoomDetection(players, roomElements, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -76,6 +77,9 @@ export const TabletopView = ({
   // Handle keyboard movement
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable movement when in building mode
+      if (isBuildingMode) return;
+      
       const key = e.key.toLowerCase();
       if (['w', 'a', 's', 'd'].includes(key)) {
         e.preventDefault();
@@ -105,11 +109,11 @@ export const TabletopView = ({
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [isBuildingMode]);
 
   // Animation loop for smooth movement
   useEffect(() => {
-    if (!currentPlayer || pressedKeys.size === 0) return;
+    if (!currentPlayer || pressedKeys.size === 0 || isBuildingMode) return;
 
     const moveSpeed = 3;
     
@@ -146,7 +150,7 @@ export const TabletopView = ({
 
   // Handle click-to-move
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!currentPlayer) return;
+    if (!currentPlayer || isBuildingMode) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -216,11 +220,11 @@ export const TabletopView = ({
           </div>
         </div>
         
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>Use WASD to move or click to teleport</span>
-          <span>•</span>
-          <span>Voice proximity range: {proximityRange}px</span>
-        </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>{isBuildingMode ? "Building mode active - movement disabled" : "Use WASD to move or click to teleport"}</span>
+            <span>•</span>
+            <span>Voice proximity range: {proximityRange}px</span>
+          </div>
       </div>
 
       {/* Game Area */}
@@ -368,6 +372,7 @@ export const TabletopView = ({
                 currentPlayerId={currentPlayerId}
                 canvasWidth={CANVAS_WIDTH}
                 canvasHeight={CANVAS_HEIGHT}
+                onBuildingStateChange={setIsBuildingMode}
               />
             </div>
           </Card>

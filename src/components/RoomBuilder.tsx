@@ -46,6 +46,7 @@ interface RoomBuilderProps {
   currentPlayerId: string;
   canvasWidth: number;
   canvasHeight: number;
+  onBuildingStateChange: (isBuilding: boolean) => void;
 }
 
 type BuildTool = 'wall' | 'door' | 'delete' | null;
@@ -57,11 +58,18 @@ export const RoomBuilder = ({
   onKnockDoor,
   currentPlayerId,
   canvasWidth,
-  canvasHeight
+  canvasHeight,
+  onBuildingStateChange
 }: RoomBuilderProps) => {
   const [activeTool, setActiveTool] = useState<BuildTool>(null);
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildStart, setBuildStart] = useState<{ x: number; y: number } | null>(null);
+  
+  // Notify parent when building state changes
+  const updateBuildingState = (building: boolean) => {
+    setIsBuilding(building);
+    onBuildingStateChange(building || activeTool !== null);
+  };
 
   const snapToGrid = (value: number, gridSize: number = 25) => {
     return Math.round(value / gridSize) * gridSize;
@@ -74,7 +82,7 @@ export const RoomBuilder = ({
     const x = snapToGrid(e.clientX - rect.left);
     const y = snapToGrid(e.clientY - rect.top);
 
-    setIsBuilding(true);
+    updateBuildingState(true);
     setBuildStart({ x, y });
   };
 
@@ -115,7 +123,7 @@ export const RoomBuilder = ({
       onElementsChange([...elements, newDoor]);
     }
 
-    setIsBuilding(false);
+    updateBuildingState(false);
     setBuildStart(null);
     setActiveTool(null);
   };
@@ -201,7 +209,11 @@ export const RoomBuilder = ({
             <Button
               variant={activeTool === 'wall' ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveTool(activeTool === 'wall' ? null : 'wall')}
+              onClick={() => {
+                const newTool = activeTool === 'wall' ? null : 'wall';
+                setActiveTool(newTool);
+                onBuildingStateChange(newTool !== null);
+              }}
             >
               <Square className="w-4 h-4" />
             </Button>
@@ -209,7 +221,11 @@ export const RoomBuilder = ({
             <Button
               variant={activeTool === 'door' ? "default" : "outline"}
               size="sm"
-              onClick={() => setActiveTool(activeTool === 'door' ? null : 'door')}
+              onClick={() => {
+                const newTool = activeTool === 'door' ? null : 'door';
+                setActiveTool(newTool);
+                onBuildingStateChange(newTool !== null);
+              }}
             >
               <DoorOpen className="w-4 h-4" />
             </Button>
@@ -217,7 +233,11 @@ export const RoomBuilder = ({
             <Button
               variant={activeTool === 'delete' ? "destructive" : "outline"}
               size="sm"
-              onClick={() => setActiveTool(activeTool === 'delete' ? null : 'delete')}
+              onClick={() => {
+                const newTool = activeTool === 'delete' ? null : 'delete';
+                setActiveTool(newTool);
+                onBuildingStateChange(newTool !== null);
+              }}
             >
               <Trash2 className="w-4 h-4" />
             </Button>
