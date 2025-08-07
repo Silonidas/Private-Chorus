@@ -116,15 +116,20 @@ export const RoomBuilder = ({
     }
 
     if (activeTool === 'wall') {
-      const newWall: Wall = {
-        id: `wall-${Date.now()}`,
-        x1: buildStart.x,
-        y1: buildStart.y,
-        x2: x,
-        y2: y,
-        type: 'wall'
-      };
-      onElementsChange([...elements, newWall]);
+      // Create a room rectangle with 4 walls
+      const roomId = `room-${Date.now()}`;
+      const left = Math.min(buildStart.x, x);
+      const top = Math.min(buildStart.y, y);
+      const right = Math.max(buildStart.x, x);
+      const bottom = Math.max(buildStart.y, y);
+      
+      const newWalls: Wall[] = [
+        { id: `${roomId}-top`, x1: left, y1: top, x2: right, y2: top, type: 'wall' },
+        { id: `${roomId}-right`, x1: right, y1: top, x2: right, y2: bottom, type: 'wall' },
+        { id: `${roomId}-bottom`, x1: right, y1: bottom, x2: left, y2: bottom, type: 'wall' },
+        { id: `${roomId}-left`, x1: left, y1: bottom, x2: left, y2: top, type: 'wall' }
+      ];
+      onElementsChange([...elements, ...newWalls]);
     } else if (activeTool === 'door') {
       const width = Math.abs(x - buildStart.x);
       const height = Math.abs(y - buildStart.y);
@@ -214,19 +219,23 @@ export const RoomBuilder = ({
     if (!buildStart || !currentPreview || !activeTool || activeTool === 'delete') return null;
 
     if (activeTool === 'wall') {
+      // Show room rectangle preview
+      const width = Math.abs(currentPreview.x - buildStart.x);
+      const height = Math.abs(currentPreview.y - buildStart.y);
+      
+      const snappedWidth = Math.max(GRID_SIZE, Math.round(width / GRID_SIZE) * GRID_SIZE);
+      const snappedHeight = Math.max(GRID_SIZE, Math.round(height / GRID_SIZE) * GRID_SIZE);
+      
       return (
-        <svg className="absolute inset-0 pointer-events-none" style={{ width: canvasWidth, height: canvasHeight }}>
-          <line
-            x1={buildStart.x}
-            y1={buildStart.y}
-            x2={currentPreview.x}
-            y2={currentPreview.y}
-            stroke="hsl(var(--primary))"
-            strokeWidth="4"
-            strokeDasharray="8,8"
-            opacity={0.7}
-          />
-        </svg>
+        <div
+          className="absolute border-2 border-dashed border-primary bg-primary/10 pointer-events-none"
+          style={{
+            left: Math.min(buildStart.x, currentPreview.x),
+            top: Math.min(buildStart.y, currentPreview.y),
+            width: snappedWidth,
+            height: snappedHeight
+          }}
+        />
       );
     }
 
@@ -324,7 +333,7 @@ export const RoomBuilder = ({
 
           {activeTool && (
             <div className="mt-2 text-xs text-muted-foreground">
-              {activeTool === 'wall' && "Click and drag to create walls"}
+              {activeTool === 'wall' && "Click and drag to create a room"}
               {activeTool === 'door' && "Click and drag to create doors"}
               {activeTool === 'delete' && "Click elements to delete them"}
             </div>
