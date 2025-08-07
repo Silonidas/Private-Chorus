@@ -29,6 +29,9 @@ interface TabletopViewProps {
   isDeafened: boolean;
   proximityRange: number;
   isAdmin: boolean;
+  roomElements: RoomElement[];
+  onRoomElementsChange: (elements: RoomElement[]) => void;
+  onRoomClick: (roomId: string) => void;
 }
 
 const PROXIMITY_RANGE = 150; // pixels
@@ -44,13 +47,15 @@ export const TabletopView = ({
   isMuted,
   isDeafened,
   proximityRange,
-  isAdmin
+  isAdmin,
+  roomElements,
+  onRoomElementsChange,
+  onRoomClick
 }: TabletopViewProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
   const [isMoving, setIsMoving] = useState(false);
   const animationRef = useRef<number>();
-  const [roomElements, setRoomElements] = useState<RoomElement[]>([]);
   const [isBuildingMode, setIsBuildingMode] = useState(false);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId);
@@ -184,7 +189,7 @@ export const TabletopView = ({
 
   // Handle knocking on doors
   const handleKnockDoor = (doorId: string, playerId: string) => {
-    setRoomElements(prev => prev.map(el => {
+    onRoomElementsChange(roomElements.map(el => {
       if (el.id === doorId && el.type === 'door') {
         const door = el as any;
         if (!door.knockRequests.includes(playerId)) {
@@ -193,6 +198,13 @@ export const TabletopView = ({
       }
       return el;
     }));
+  };
+
+  // Handle room area clicks for teleportation
+  const handleRoomAreaClick = (roomId: string) => {
+    if (!isBuildingMode) {
+      onRoomClick(roomId);
+    }
   };
 
   // Get current player's room info
@@ -370,13 +382,30 @@ export const TabletopView = ({
               <RoomBuilder
                 isAdmin={isAdmin}
                 elements={roomElements}
-                onElementsChange={setRoomElements}
+                onElementsChange={onRoomElementsChange}
                 onKnockDoor={handleKnockDoor}
                 currentPlayerId={currentPlayerId}
                 canvasWidth={CANVAS_WIDTH}
                 canvasHeight={CANVAS_HEIGHT}
                 onBuildingStateChange={setIsBuildingMode}
               />
+
+              {/* Room Click Areas */}
+              {rooms.filter(room => room.id !== 'room-outside').map(room => (
+                <div
+                  key={`clickable-${room.id}`}
+                  className="absolute cursor-pointer hover:bg-accent/10 transition-colors border border-accent/20 rounded"
+                  style={{
+                    left: room.bounds.minX,
+                    top: room.bounds.minY,
+                    width: room.bounds.maxX - room.bounds.minX,
+                    height: room.bounds.maxY - room.bounds.minY,
+                    pointerEvents: isBuildingMode ? 'none' : 'auto'
+                  }}
+                  onClick={() => handleRoomAreaClick(room.id)}
+                  title={`Click to join Room ${room.id.replace('room-', '')} channel`}
+                />
+              ))}
             </div>
           </Card>
 
