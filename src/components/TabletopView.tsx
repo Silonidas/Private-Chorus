@@ -212,9 +212,12 @@ export const TabletopView = ({
               <Users className="w-3 h-3" />
               {playersInRange.length} nearby
             </Badge>
-            {currentRoom && currentRoom.id !== 'room-outside' && (
-              <Badge variant="secondary" className="gap-1">
-                Room: {currentRoom.id.replace('room-', '')}
+            {currentRoom && (
+              <Badge 
+                variant={currentRoom.id === 'room-outside' ? "outline" : "secondary"} 
+                className="gap-1"
+              >
+                {currentRoom.id === 'room-outside' ? 'Outside' : `Room ${currentRoom.id.replace('room-', '')}`}
               </Badge>
             )}
           </div>

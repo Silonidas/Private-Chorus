@@ -129,22 +129,26 @@ export const RoomBuilder = ({
       const width = Math.abs(x - buildStart.x);
       const height = Math.abs(y - buildStart.y);
       
+      // Snap to grid boundaries - ensure at least one grid unit
+      const snappedWidth = Math.max(GRID_SIZE, Math.round(width / GRID_SIZE) * GRID_SIZE);
+      const snappedHeight = Math.max(GRID_SIZE, Math.round(height / GRID_SIZE) * GRID_SIZE);
+      
       // Ensure minimum door size of one grid unit
-      if (width < GRID_SIZE && height < GRID_SIZE) {
+      if (snappedWidth < GRID_SIZE && snappedHeight < GRID_SIZE) {
         updateBuildingState(false);
         setBuildStart(null);
         setCurrentPreview(null);
         return;
       }
       
-      const orientation = width > height ? 'horizontal' : 'vertical';
+      const orientation = snappedWidth > snappedHeight ? 'horizontal' : 'vertical';
       
       const newDoor: Door = {
         id: `door-${Date.now()}`,
         x: Math.min(buildStart.x, x),
         y: Math.min(buildStart.y, y),
-        width: Math.max(width, GRID_SIZE),
-        height: Math.max(height, GRID_SIZE),
+        width: snappedWidth,
+        height: snappedHeight,
         isLocked: false,
         isOpen: false,
         orientation,
@@ -230,14 +234,18 @@ export const RoomBuilder = ({
       const width = Math.abs(currentPreview.x - buildStart.x);
       const height = Math.abs(currentPreview.y - buildStart.y);
       
+      // Snap to grid boundaries - always show at least one grid square
+      const snappedWidth = Math.max(GRID_SIZE, Math.round(width / GRID_SIZE) * GRID_SIZE);
+      const snappedHeight = Math.max(GRID_SIZE, Math.round(height / GRID_SIZE) * GRID_SIZE);
+      
       return (
         <div
           className="absolute border-2 border-dashed border-primary bg-primary/20 pointer-events-none"
           style={{
             left: Math.min(buildStart.x, currentPreview.x),
             top: Math.min(buildStart.y, currentPreview.y),
-            width: Math.max(width, GRID_SIZE),
-            height: Math.max(height, GRID_SIZE)
+            width: snappedWidth,
+            height: snappedHeight
           }}
         />
       );
