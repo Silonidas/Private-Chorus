@@ -4,11 +4,12 @@ import { UserProfile } from "@/components/UserProfile";
 import { TabletopView } from "@/components/TabletopView";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { AdminMenu } from "@/components/AdminMenu";
+import { UniversalChat } from "@/components/UniversalChat";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mic2, Settings, Users, Globe, Map, Hash } from "lucide-react";
+import { Mic2, Settings, Users, Globe, Map, Hash, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Channel {
@@ -49,6 +50,9 @@ const Index = () => {
   
   // User admin status (would come from authentication in real app)
   const [isAdmin, setIsAdmin] = useState(true);
+  
+  // Chat state
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
   
   // Tabletop view state
   const [players, setPlayers] = useState<Player[]>([
@@ -346,6 +350,13 @@ const Index = () => {
             </div>
             
             <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setIsChatMinimized(!isChatMinimized)}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
               <Button variant="ghost" size="sm">
                 <Users className="w-4 h-4" />
               </Button>
@@ -353,8 +364,9 @@ const Index = () => {
           </div>
 
           {/* Content Area */}
-          <div className="flex-1">
-            {activeView === "channels" ? (
+          <div className="flex-1 flex">
+            <div className="flex-1">
+              {activeView === "channels" ? (
               <div className="h-full p-6 flex items-center justify-center">
                 {!connectedChannelId ? (
                   <Card className="p-8 text-center max-w-md mx-auto border-border/50">
@@ -397,16 +409,42 @@ const Index = () => {
                 )}
               </div>
             ) : (
-              <TabletopView
-                players={players}
-                currentPlayerId="you"
-                onPlayerMove={handlePlayerMove}
-                onToggleMute={handleTabletopToggleMute}
-                onToggleDeafen={handleTabletopToggleDeafen}
-                isMuted={isMuted}
-                isDeafened={isDeafened}
-                proximityRange={proximityRange}
-                isAdmin={isAdmin}
+                <TabletopView
+                  players={players}
+                  currentPlayerId="you"
+                  onPlayerMove={handlePlayerMove}
+                  onToggleMute={handleTabletopToggleMute}
+                  onToggleDeafen={handleTabletopToggleDeafen}
+                  isMuted={isMuted}
+                  isDeafened={isDeafened}
+                  proximityRange={proximityRange}
+                  isAdmin={isAdmin}
+                />
+              )}
+            </div>
+            
+            {/* Chat Panel */}
+            {!isChatMinimized && (
+              <div className="w-80 border-l border-border/50">
+                <UniversalChat
+                  currentUserId="you"
+                  currentUsername="You"
+                  channelId={activeView === "channels" ? connectedChannelId : undefined}
+                  roomId={activeView === "tabletop" ? "tabletop" : undefined}
+                  className="h-full"
+                />
+              </div>
+            )}
+            
+            {/* Minimized Chat Button */}
+            {isChatMinimized && (
+              <UniversalChat
+                currentUserId="you"
+                currentUsername="You"
+                channelId={activeView === "channels" ? connectedChannelId : undefined}
+                roomId={activeView === "tabletop" ? "tabletop" : undefined}
+                isMinimized={true}
+                onToggleMinimize={() => setIsChatMinimized(false)}
               />
             )}
           </div>
