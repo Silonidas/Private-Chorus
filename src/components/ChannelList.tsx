@@ -21,6 +21,8 @@ interface ChannelListProps {
   isDeafened: boolean;
   onToggleMute: () => void;
   onToggleDeafen: () => void;
+  roomChannels?: Channel[];
+  isTabletopView?: boolean;
 }
 
 export const ChannelList = ({
@@ -32,7 +34,9 @@ export const ChannelList = ({
   isMuted,
   isDeafened,
   onToggleMute,
-  onToggleDeafen
+  onToggleDeafen,
+  roomChannels = [],
+  isTabletopView = false
 }: ChannelListProps) => {
   const [newChannelName, setNewChannelName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -92,7 +96,8 @@ export const ChannelList = ({
       )}
 
       <div className="space-y-2">
-        {channels.map((channel) => (
+        {/* Regular channels - only show if not in tabletop view */}
+        {!isTabletopView && channels.map((channel) => (
           <VoiceChannel
             key={channel.id}
             channelName={channel.name}
@@ -107,7 +112,23 @@ export const ChannelList = ({
           />
         ))}
 
-        {channels.length === 0 && !isCreating && (
+        {/* Room channels - only show in tabletop view */}
+        {isTabletopView && roomChannels.map((channel) => (
+          <VoiceChannel
+            key={channel.id}
+            channelName={`Room ${channel.name}`}
+            isConnected={connectedChannelId === channel.id}
+            isMuted={isMuted}
+            isDeafened={isDeafened}
+            onToggleMute={onToggleMute}
+            onToggleDeafen={onToggleDeafen}
+            onConnect={() => onConnectToChannel(channel.id)}
+            onDisconnect={onDisconnectFromChannel}
+            userCount={channel.userCount}
+          />
+        ))}
+
+        {channels.length === 0 && !isCreating && !isTabletopView && (
           <Card className="p-6 text-center border-dashed border-border/50">
             <p className="text-muted-foreground mb-2">No voice channels yet</p>
             <Button
@@ -118,6 +139,13 @@ export const ChannelList = ({
               <Plus className="w-4 h-4" />
               Create your first channel
             </Button>
+          </Card>
+        )}
+
+        {isTabletopView && roomChannels.length === 0 && (
+          <Card className="p-6 text-center border-dashed border-border/50">
+            <p className="text-muted-foreground mb-2">No rooms created yet</p>
+            <p className="text-xs text-muted-foreground">Create rooms using the Room Builder tool</p>
           </Card>
         )}
       </div>

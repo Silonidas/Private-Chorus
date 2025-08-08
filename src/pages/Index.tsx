@@ -5,12 +5,14 @@ import { TabletopView } from "@/components/TabletopView";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { AdminMenu } from "@/components/AdminMenu";
 import { UniversalChat } from "@/components/UniversalChat";
+import { RoomBuilderControls } from "@/components/RoomBuilderControls";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mic2, Settings, Users, Globe, Map, Hash, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Channel {
   id: string;
@@ -56,6 +58,7 @@ const Index = () => {
   
   // Room builder state
   const [showRoomBuilder, setShowRoomBuilder] = useState(false);
+  const [roomChannels, setRoomChannels] = useState<Channel[]>([]);
   
   // Tabletop view state
   const [players, setPlayers] = useState<Player[]>([
@@ -237,6 +240,20 @@ const Index = () => {
     });
   };
 
+  const handleRoomCreated = (roomId: string) => {
+    const roomNumber = roomChannels.length + 1;
+    const newRoomChannel: Channel = {
+      id: roomId,
+      name: roomNumber.toString(),
+      userCount: 0
+    };
+    setRoomChannels(prev => [...prev, newRoomChannel]);
+    toast({
+      title: "Room Created",
+      description: `Room ${roomNumber} has been created and is now available as a channel.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-dark">
       <div className="flex h-screen">
@@ -284,13 +301,19 @@ const Index = () => {
                 onToggleDeafen={handleToggleDeafen}
               />
             ) : (
-              <div className="text-center py-8">
-                <Map className="w-12 h-12 text-accent mx-auto mb-3" />
-                <h3 className="font-semibold text-sidebar-foreground mb-2">Tabletop View Active</h3>
-                <p className="text-sm text-sidebar-foreground/70">
-                  Use the main area to move around and chat with nearby players
-                </p>
-              </div>
+              <ChannelList
+                channels={channels}
+                connectedChannelId={connectedChannelId}
+                onCreateChannel={handleCreateChannel}
+                onConnectToChannel={handleConnectToChannel}
+                onDisconnectFromChannel={handleDisconnectFromChannel}
+                isMuted={isMuted}
+                isDeafened={isDeafened}
+                onToggleMute={handleToggleMute}
+                onToggleDeafen={handleToggleDeafen}
+                roomChannels={roomChannels}
+                isTabletopView={true}
+              />
             )}
           </div>
 
@@ -377,9 +400,18 @@ const Index = () => {
           </div>
 
           {/* Content Area */}
-          <div className="flex-1 flex">
-            <div className="flex-1">
-              {activeView === "channels" ? (
+          <div className="flex-1 flex flex-col relative">
+            {/* Room Builder Controls - Fixed Position */}
+            {showRoomBuilder && activeView === "tabletop" && (
+              <div className="absolute top-4 right-4 z-50">
+                <RoomBuilderControls
+                  activeTool={null}
+                  onToolChange={() => {}}
+                />
+              </div>
+            )}
+
+            {activeView === "channels" ? (
               <div className="h-full p-6 flex items-center justify-center">
                 {!connectedChannelId ? (
                   <Card className="p-8 text-center max-w-md mx-auto border-border/50">
@@ -422,45 +454,36 @@ const Index = () => {
                 )}
               </div>
             ) : (
-                <TabletopView
-                  players={players}
-                  currentPlayerId="you"
-                  onPlayerMove={handlePlayerMove}
-                  onToggleMute={handleTabletopToggleMute}
-                  onToggleDeafen={handleTabletopToggleDeafen}
-                  isMuted={isMuted}
-                  isDeafened={isDeafened}
-                  proximityRange={proximityRange}
-                  isAdmin={isAdmin}
-                  showRoomBuilder={showRoomBuilder}
-                />
-              )}
-            </div>
-            
-            {/* Chat Panel */}
-            {!isChatMinimized && (
-              <div className="w-80 border-l border-border/50">
-                <UniversalChat
-                  currentUserId="you"
-                  currentUsername="You"
-                  channelId={activeView === "channels" ? connectedChannelId : undefined}
-                  roomId={activeView === "tabletop" ? "tabletop" : undefined}
-                  className="h-full"
-                />
-              </div>
-            )}
-            
-            {/* Minimized Chat Button */}
-            {isChatMinimized && (
-              <UniversalChat
-                currentUserId="you"
-                currentUsername="You"
-                channelId={activeView === "channels" ? connectedChannelId : undefined}
-                roomId={activeView === "tabletop" ? "tabletop" : undefined}
-                isMinimized={true}
-                onToggleMinimize={() => setIsChatMinimized(false)}
+              <TabletopView
+                players={players}
+                currentPlayerId="you"
+                onPlayerMove={handlePlayerMove}
+                onToggleMute={handleTabletopToggleMute}
+                onToggleDeafen={handleTabletopToggleDeafen}
+                isMuted={isMuted}
+                isDeafened={isDeafened}
+                proximityRange={proximityRange}
+                isAdmin={isAdmin}
+                showRoomBuilder={showRoomBuilder}
+                onRoomCreated={handleRoomCreated}
               />
             )}
+          </div>
+
+          {/* Universal Chat - Horizontal at bottom */}
+          <div className={cn(
+            "transition-all duration-300 border-t border-border/50",
+            isChatMinimized ? "fixed bottom-4 right-4 z-50" : "h-48"
+          )}>
+            <UniversalChat
+              currentUserId="you"
+              currentUsername="You"
+              channelId={activeView === "channels" ? connectedChannelId : undefined}
+              roomId={activeView === "tabletop" ? "tabletop" : undefined}
+              isMinimized={isChatMinimized}
+              onToggleMinimize={() => setIsChatMinimized(!isChatMinimized)}
+              className={isChatMinimized ? "w-12 h-12" : "h-full"}
+            />
           </div>
         </div>
       </div>

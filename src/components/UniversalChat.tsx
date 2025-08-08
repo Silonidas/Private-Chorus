@@ -170,9 +170,9 @@ export const UniversalChat = ({
   }
 
   return (
-    <Card className={cn("flex flex-col h-full border-border/50", className)}>
+    <Card className={cn("flex flex-col border-border/50", className)}>
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/50">
+      <div className="flex items-center justify-between p-2 border-b border-border/50">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-accent" />
           <h3 className="font-semibold text-foreground">
@@ -194,7 +194,7 @@ export const UniversalChat = ({
       </div>
 
       {/* Messages Area */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-2 max-h-32">
         <div className="space-y-4">
           {Object.entries(groupedMessages).map(([dateKey, dayMessages]) => (
             <div key={dateKey}>
@@ -285,7 +285,7 @@ export const UniversalChat = ({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-border/50">
+      <div className="p-2 border-t border-border/50">
         <div className="flex gap-2">
           <Input
             ref={inputRef}

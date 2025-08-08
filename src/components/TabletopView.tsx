@@ -30,6 +30,7 @@ interface TabletopViewProps {
   proximityRange: number;
   isAdmin: boolean;
   showRoomBuilder?: boolean;
+  onRoomCreated: (roomId: string) => void;
 }
 
 const PROXIMITY_RANGE = 150; // pixels
@@ -46,7 +47,8 @@ export const TabletopView = ({
   isDeafened,
   proximityRange,
   isAdmin,
-  showRoomBuilder = false
+  showRoomBuilder = false,
+  onRoomCreated
 }: TabletopViewProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
@@ -379,6 +381,7 @@ export const TabletopView = ({
                   canvasWidth={CANVAS_WIDTH}
                   canvasHeight={CANVAS_HEIGHT}
                   onBuildingStateChange={setIsBuildingMode}
+                  onRoomCreated={onRoomCreated}
                 />
               )}
             </div>

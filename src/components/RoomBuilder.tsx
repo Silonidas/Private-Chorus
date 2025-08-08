@@ -47,6 +47,7 @@ interface RoomBuilderProps {
   canvasWidth: number;
   canvasHeight: number;
   onBuildingStateChange: (isBuilding: boolean) => void;
+  onRoomCreated: (roomId: string) => void;
 }
 
 type BuildTool = 'wall' | 'door' | 'delete' | null;
@@ -61,7 +62,8 @@ export const RoomBuilder = ({
   currentPlayerId,
   canvasWidth,
   canvasHeight,
-  onBuildingStateChange
+  onBuildingStateChange,
+  onRoomCreated
 }: RoomBuilderProps) => {
   const [activeTool, setActiveTool] = useState<BuildTool>(null);
   const [isBuilding, setIsBuilding] = useState(false);
@@ -130,6 +132,7 @@ export const RoomBuilder = ({
         { id: `${roomId}-left`, x1: left, y1: bottom, x2: left, y2: top, type: 'wall' }
       ];
       onElementsChange([...elements, ...newWalls]);
+      onRoomCreated(roomId);
     } else if (activeTool === 'door') {
       const width = Math.abs(x - buildStart.x);
       const height = Math.abs(y - buildStart.y);
@@ -148,10 +151,33 @@ export const RoomBuilder = ({
       
       const orientation = snappedWidth > snappedHeight ? 'horizontal' : 'vertical';
       
+      const doorLeft = Math.min(buildStart.x, x);
+      const doorTop = Math.min(buildStart.y, y);
+      const doorRight = doorLeft + snappedWidth;
+      const doorBottom = doorTop + snappedHeight;
+
+      // Find and remove walls that overlap with the door
+      const filteredElements = elements.filter(element => {
+        if (element.type !== 'wall') return true;
+        
+        const wall = element as Wall;
+        // Check if wall intersects with door
+        const wallMinX = Math.min(wall.x1, wall.x2);
+        const wallMaxX = Math.max(wall.x1, wall.x2);
+        const wallMinY = Math.min(wall.y1, wall.y2);
+        const wallMaxY = Math.max(wall.y1, wall.y2);
+        
+        // Check for overlap
+        const overlap = !(doorRight <= wallMinX || doorLeft >= wallMaxX || 
+                         doorBottom <= wallMinY || doorTop >= wallMaxY);
+        
+        return !overlap;
+      });
+
       const newDoor: Door = {
         id: `door-${Date.now()}`,
-        x: Math.min(buildStart.x, x),
-        y: Math.min(buildStart.y, y),
+        x: doorLeft,
+        y: doorTop,
         width: snappedWidth,
         height: snappedHeight,
         isLocked: false,
@@ -160,7 +186,7 @@ export const RoomBuilder = ({
         type: 'door',
         knockRequests: []
       };
-      onElementsChange([...elements, newDoor]);
+      onElementsChange([...filteredElements, newDoor]);
     }
 
     updateBuildingState(false);
@@ -283,63 +309,8 @@ export const RoomBuilder = ({
     );
   }
 
-  return (
+    return (
     <>
-      {/* Admin Build Tools */}
-      <div className="absolute top-4 right-4 z-10">
-        <Card className="p-3 bg-card/90 border-border/50">
-          <div className="flex items-center gap-2 mb-3">
-            <Shield className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium">Room Builder</span>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant={activeTool === 'wall' ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                const newTool = activeTool === 'wall' ? null : 'wall';
-                setActiveTool(newTool);
-                onBuildingStateChange(newTool !== null);
-              }}
-            >
-              <Square className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant={activeTool === 'door' ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                const newTool = activeTool === 'door' ? null : 'door';
-                setActiveTool(newTool);
-                onBuildingStateChange(newTool !== null);
-              }}
-            >
-              <DoorOpen className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              variant={activeTool === 'delete' ? "destructive" : "outline"}
-              size="sm"
-              onClick={() => {
-                const newTool = activeTool === 'delete' ? null : 'delete';
-                setActiveTool(newTool);
-                onBuildingStateChange(newTool !== null);
-              }}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {activeTool && (
-            <div className="mt-2 text-xs text-muted-foreground">
-              {activeTool === 'wall' && "Click and drag to create a room"}
-              {activeTool === 'door' && "Click and drag to create doors"}
-              {activeTool === 'delete' && "Click elements to delete them"}
-            </div>
-          )}
-        </Card>
-      </div>
 
       {/* Knock Notifications */}
       {elements.some(el => el.type === 'door' && (el as Door).knockRequests.length > 0) && (
