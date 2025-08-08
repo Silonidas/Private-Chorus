@@ -29,6 +29,7 @@ interface TabletopViewProps {
   isDeafened: boolean;
   proximityRange: number;
   isAdmin: boolean;
+  showRoomBuilder?: boolean;
 }
 
 const PROXIMITY_RANGE = 150; // pixels
@@ -44,7 +45,8 @@ export const TabletopView = ({
   isMuted,
   isDeafened,
   proximityRange,
-  isAdmin
+  isAdmin,
+  showRoomBuilder = false
 }: TabletopViewProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
@@ -367,16 +369,18 @@ export const TabletopView = ({
               )}
 
               {/* Room Builder Component */}
-              <RoomBuilder
-                isAdmin={isAdmin}
-                elements={roomElements}
-                onElementsChange={setRoomElements}
-                onKnockDoor={handleKnockDoor}
-                currentPlayerId={currentPlayerId}
-                canvasWidth={CANVAS_WIDTH}
-                canvasHeight={CANVAS_HEIGHT}
-                onBuildingStateChange={setIsBuildingMode}
-              />
+              {showRoomBuilder && (
+                <RoomBuilder
+                  isAdmin={isAdmin}
+                  elements={roomElements}
+                  onElementsChange={setRoomElements}
+                  onKnockDoor={handleKnockDoor}
+                  currentPlayerId={currentPlayerId}
+                  canvasWidth={CANVAS_WIDTH}
+                  canvasHeight={CANVAS_HEIGHT}
+                  onBuildingStateChange={setIsBuildingMode}
+                />
+              )}
             </div>
           </Card>
 

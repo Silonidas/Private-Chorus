@@ -7,20 +7,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Shield, Users, Settings, Ban, Crown } from "lucide-react";
+import { Shield, Users, Settings, Ban, Crown, Hammer } from "lucide-react";
 
 interface AdminMenuProps {
   onManageUsers: () => void;
   onServerSettings: () => void;
   onModerationTools: () => void;
   onChannelManagement: () => void;
+  onRoomBuilder: () => void;
 }
 
 export const AdminMenu = ({
   onManageUsers,
   onServerSettings,
   onModerationTools,
-  onChannelManagement
+  onChannelManagement,
+  onRoomBuilder
 }: AdminMenuProps) => {
   return (
     <DropdownMenu>
@@ -42,6 +44,10 @@ export const AdminMenu = ({
         <DropdownMenuItem onClick={onChannelManagement}>
           <Settings className="w-4 h-4 mr-2" />
           Channel Management
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onRoomBuilder}>
+          <Hammer className="w-4 h-4 mr-2" />
+          Room Builder
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onModerationTools}>
           <Ban className="w-4 h-4 mr-2" />

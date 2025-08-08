@@ -54,6 +54,9 @@ const Index = () => {
   // Chat state
   const [isChatMinimized, setIsChatMinimized] = useState(false);
   
+  // Room builder state
+  const [showRoomBuilder, setShowRoomBuilder] = useState(false);
+  
   // Tabletop view state
   const [players, setPlayers] = useState<Player[]>([
     {
@@ -225,6 +228,15 @@ const Index = () => {
     });
   };
 
+  const handleRoomBuilder = () => {
+    setActiveView("tabletop");
+    setShowRoomBuilder(!showRoomBuilder);
+    toast({
+      title: showRoomBuilder ? "Room Builder Disabled" : "Room Builder Enabled",
+      description: showRoomBuilder ? "Room building mode is now off." : "Room building mode is now active.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-dark">
       <div className="flex h-screen">
@@ -316,6 +328,7 @@ const Index = () => {
                   onServerSettings={handleServerSettings}
                   onModerationTools={handleModerationTools}
                   onChannelManagement={handleChannelManagement}
+                  onRoomBuilder={handleRoomBuilder}
                 />
               }
             />
@@ -419,6 +432,7 @@ const Index = () => {
                   isDeafened={isDeafened}
                   proximityRange={proximityRange}
                   isAdmin={isAdmin}
+                  showRoomBuilder={showRoomBuilder}
                 />
               )}
             </div>
