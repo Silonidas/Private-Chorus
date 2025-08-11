@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Shield, Users, Settings, Ban, Crown, Hammer } from "lucide-react";
+import { RoomBuilderControls } from "@/components/RoomBuilderControls";
 
 interface AdminMenuProps {
   onManageUsers: () => void;
@@ -15,6 +16,9 @@ interface AdminMenuProps {
   onModerationTools: () => void;
   onChannelManagement: () => void;
   onRoomBuilder: () => void;
+  showRoomBuilder?: boolean;
+  roomBuilderActiveTool?: 'wall' | 'door' | 'delete' | null;
+  onRoomBuilderToolChange?: (tool: 'wall' | 'door' | 'delete' | null) => void;
 }
 
 export const AdminMenu = ({
@@ -22,7 +26,10 @@ export const AdminMenu = ({
   onServerSettings,
   onModerationTools,
   onChannelManagement,
-  onRoomBuilder
+  onRoomBuilder,
+  showRoomBuilder = false,
+  roomBuilderActiveTool = null,
+  onRoomBuilderToolChange
 }: AdminMenuProps) => {
   return (
     <DropdownMenu>
@@ -49,6 +56,19 @@ export const AdminMenu = ({
           <Hammer className="w-4 h-4 mr-2" />
           Room Builder
         </DropdownMenuItem>
+        
+        {/* Room Builder Controls - Show when active */}
+        {showRoomBuilder && onRoomBuilderToolChange && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-2 py-2">
+              <RoomBuilderControls
+                activeTool={roomBuilderActiveTool}
+                onToolChange={onRoomBuilderToolChange}
+              />
+            </div>
+          </>
+        )}
         <DropdownMenuItem onClick={onModerationTools}>
           <Ban className="w-4 h-4 mr-2" />
           Moderation Tools

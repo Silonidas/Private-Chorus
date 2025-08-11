@@ -59,6 +59,7 @@ const Index = () => {
   // Room builder state
   const [showRoomBuilder, setShowRoomBuilder] = useState(false);
   const [roomChannels, setRoomChannels] = useState<Channel[]>([]);
+  const [roomBuilderActiveTool, setRoomBuilderActiveTool] = useState<'wall' | 'door' | 'delete' | null>(null);
   
   // Tabletop view state
   const [players, setPlayers] = useState<Player[]>([
@@ -352,6 +353,9 @@ const Index = () => {
                   onModerationTools={handleModerationTools}
                   onChannelManagement={handleChannelManagement}
                   onRoomBuilder={handleRoomBuilder}
+                  showRoomBuilder={showRoomBuilder}
+                  roomBuilderActiveTool={roomBuilderActiveTool}
+                  onRoomBuilderToolChange={setRoomBuilderActiveTool}
                 />
               }
             />
@@ -401,15 +405,6 @@ const Index = () => {
 
           {/* Content Area */}
           <div className="flex-1 flex flex-col relative">
-            {/* Room Builder Controls - Fixed Position */}
-            {showRoomBuilder && activeView === "tabletop" && (
-              <div className="absolute top-4 right-4 z-50">
-                <RoomBuilderControls
-                  activeTool={null}
-                  onToolChange={() => {}}
-                />
-              </div>
-            )}
 
             {activeView === "channels" ? (
               <div className="h-full p-6 flex items-center justify-center">
@@ -466,6 +461,8 @@ const Index = () => {
                 isAdmin={isAdmin}
                 showRoomBuilder={showRoomBuilder}
                 onRoomCreated={handleRoomCreated}
+                activeTool={roomBuilderActiveTool}
+                onToolChange={setRoomBuilderActiveTool}
               />
             )}
           </div>

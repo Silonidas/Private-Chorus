@@ -48,6 +48,8 @@ interface RoomBuilderProps {
   canvasHeight: number;
   onBuildingStateChange: (isBuilding: boolean) => void;
   onRoomCreated: (roomId: string) => void;
+  activeTool?: 'wall' | 'door' | 'delete' | null;
+  onToolChange?: (tool: 'wall' | 'door' | 'delete' | null) => void;
 }
 
 type BuildTool = 'wall' | 'door' | 'delete' | null;
@@ -63,9 +65,11 @@ export const RoomBuilder = ({
   canvasWidth,
   canvasHeight,
   onBuildingStateChange,
-  onRoomCreated
+  onRoomCreated,
+  activeTool: externalActiveTool = null,
+  onToolChange
 }: RoomBuilderProps) => {
-  const [activeTool, setActiveTool] = useState<BuildTool>(null);
+  const activeTool = externalActiveTool;
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildStart, setBuildStart] = useState<{ x: number; y: number } | null>(null);
   const [currentPreview, setCurrentPreview] = useState<{ x: number; y: number } | null>(null);
@@ -192,7 +196,9 @@ export const RoomBuilder = ({
     updateBuildingState(false);
     setBuildStart(null);
     setCurrentPreview(null);
-    setActiveTool(null);
+    if (onToolChange) {
+      onToolChange(null);
+    }
   };
 
   const handleElementClick = (element: RoomElement, e: React.MouseEvent) => {
