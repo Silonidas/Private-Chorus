@@ -7,6 +7,7 @@ import { Mic, MicOff, Volume2, VolumeX, Users, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomBuilder, RoomElement } from "@/components/RoomBuilder";
 import { useRoomDetection } from "@/hooks/useRoomDetection";
+import { canPlayerMoveTo } from "@/utils/collisionDetection";
 
 interface Player {
   id: string;
@@ -82,10 +83,9 @@ export const TabletopView = ({
     return Math.max(0, 1 - (distance / proximityRange));
   }, [proximityRange, rooms]);
 
-  // Handle keyboard movement
+  // Handle keyboard movement with collision detection
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Disable movement when in building mode
       if (isBuildingMode) return;
       
       const key = e.key.toLowerCase();
@@ -119,7 +119,7 @@ export const TabletopView = ({
     };
   }, [isBuildingMode]);
 
-  // Animation loop for smooth movement
+  // Animation loop with collision detection
   useEffect(() => {
     if (!currentPlayer || pressedKeys.size === 0 || isBuildingMode) return;
 
@@ -138,8 +138,11 @@ export const TabletopView = ({
       newX = Math.max(25, Math.min(CANVAS_WIDTH - 25, newX));
       newY = Math.max(25, Math.min(CANVAS_HEIGHT - 25, newY));
 
-      if (newX !== currentPlayer.x || newY !== currentPlayer.y) {
-        onPlayerMove(currentPlayerId, newX, newY);
+      // Collision detection
+      const collisionCheck = canPlayerMoveTo(currentPlayer, newX, newY, roomElements);
+      
+      if (collisionCheck.canMove && (collisionCheck.adjustedX !== currentPlayer.x || collisionCheck.adjustedY !== currentPlayer.y)) {
+        onPlayerMove(currentPlayerId, collisionCheck.adjustedX, collisionCheck.adjustedY);
       }
 
       if (pressedKeys.size > 0) {
@@ -154,9 +157,9 @@ export const TabletopView = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [pressedKeys, currentPlayer, currentPlayerId, onPlayerMove]);
+  }, [pressedKeys, currentPlayer, currentPlayerId, onPlayerMove, roomElements]);
 
-  // Handle click-to-move
+  // Handle click-to-move with collision detection
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!currentPlayer || isBuildingMode) return;
 
@@ -168,7 +171,12 @@ export const TabletopView = ({
     const newX = Math.max(25, Math.min(CANVAS_WIDTH - 25, x));
     const newY = Math.max(25, Math.min(CANVAS_HEIGHT - 25, y));
 
-    onPlayerMove(currentPlayerId, newX, newY);
+    // Collision detection
+    const collisionCheck = canPlayerMoveTo(currentPlayer, newX, newY, roomElements);
+    
+    if (collisionCheck.canMove) {
+      onPlayerMove(currentPlayerId, collisionCheck.adjustedX, collisionCheck.adjustedY);
+    }
   };
 
   // Get players within proximity and same room

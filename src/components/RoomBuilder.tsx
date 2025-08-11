@@ -141,11 +141,9 @@ export const RoomBuilder = ({
       const width = Math.abs(x - buildStart.x);
       const height = Math.abs(y - buildStart.y);
       
-      // Snap to grid boundaries - ensure at least one grid unit
       const snappedWidth = Math.max(GRID_SIZE, Math.round(width / GRID_SIZE) * GRID_SIZE);
       const snappedHeight = Math.max(GRID_SIZE, Math.round(height / GRID_SIZE) * GRID_SIZE);
       
-      // Ensure minimum door size of one grid unit
       if (snappedWidth < GRID_SIZE && snappedHeight < GRID_SIZE) {
         updateBuildingState(false);
         setBuildStart(null);
@@ -165,15 +163,14 @@ export const RoomBuilder = ({
         if (element.type !== 'wall') return true;
         
         const wall = element as Wall;
-        // Check if wall intersects with door
         const wallMinX = Math.min(wall.x1, wall.x2);
         const wallMaxX = Math.max(wall.x1, wall.x2);
         const wallMinY = Math.min(wall.y1, wall.y2);
         const wallMaxY = Math.max(wall.y1, wall.y2);
         
-        // Check for overlap
-        const overlap = !(doorRight <= wallMinX || doorLeft >= wallMaxX || 
-                         doorBottom <= wallMinY || doorTop >= wallMaxY);
+        // Check for overlap with some tolerance
+        const overlap = !(doorRight <= wallMinX + 5 || doorLeft >= wallMaxX - 5 || 
+                         doorBottom <= wallMinY + 5 || doorTop >= wallMaxY - 5);
         
         return !overlap;
       });
@@ -196,9 +193,7 @@ export const RoomBuilder = ({
     updateBuildingState(false);
     setBuildStart(null);
     setCurrentPreview(null);
-    if (onToolChange) {
-      onToolChange(null);
-    }
+    // Don't auto-clear the tool - let user build multiple rooms/doors
   };
 
   const handleElementClick = (element: RoomElement, e: React.MouseEvent) => {
@@ -315,9 +310,8 @@ export const RoomBuilder = ({
     );
   }
 
-    return (
+  return (
     <>
-
       {/* Knock Notifications */}
       {elements.some(el => el.type === 'door' && (el as Door).knockRequests.length > 0) && (
         <div className="absolute top-4 left-4 space-y-2 z-10">
