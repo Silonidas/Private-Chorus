@@ -34,6 +34,8 @@ interface TabletopViewProps {
   onRoomCreated: (roomId: string) => void;
   activeTool?: 'wall' | 'door' | 'delete' | null;
   onToolChange?: (tool: 'wall' | 'door' | 'delete' | null) => void;
+  hasBuiltElements?: boolean;
+  onFinishBuilding?: () => void;
 }
 
 const PROXIMITY_RANGE = 150; // pixels
@@ -53,7 +55,9 @@ export const TabletopView = ({
   showRoomBuilder = false,
   onRoomCreated,
   activeTool = null,
-  onToolChange
+  onToolChange,
+  hasBuiltElements = false,
+  onFinishBuilding
 }: TabletopViewProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());

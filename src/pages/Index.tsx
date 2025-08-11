@@ -356,6 +356,15 @@ const Index = () => {
                   showRoomBuilder={showRoomBuilder}
                   roomBuilderActiveTool={roomBuilderActiveTool}
                   onRoomBuilderToolChange={setRoomBuilderActiveTool}
+                  hasBuiltElements={roomChannels.length > 0}
+                  onFinishBuilding={() => {
+                    setShowRoomBuilder(false);
+                    setRoomBuilderActiveTool(null);
+                    toast({
+                      title: "Room Building Complete",
+                      description: "Your room has been saved and is now available.",
+                    });
+                  }}
                 />
               }
             />
@@ -463,6 +472,15 @@ const Index = () => {
                 onRoomCreated={handleRoomCreated}
                 activeTool={roomBuilderActiveTool}
                 onToolChange={setRoomBuilderActiveTool}
+                hasBuiltElements={roomChannels.length > 0}
+                onFinishBuilding={() => {
+                  setShowRoomBuilder(false);
+                  setRoomBuilderActiveTool(null);
+                  toast({
+                    title: "Room Building Complete",
+                    description: "Your room has been saved and is now available.",
+                  });
+                }}
               />
             )}
           </div>

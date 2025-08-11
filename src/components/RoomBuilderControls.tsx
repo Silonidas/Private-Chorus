@@ -11,11 +11,15 @@ import {
 interface RoomBuilderControlsProps {
   activeTool: 'wall' | 'door' | 'delete' | null;
   onToolChange: (tool: 'wall' | 'door' | 'delete' | null) => void;
+  onFinishBuilding: () => void;
+  hasBuiltElements: boolean;
 }
 
 export const RoomBuilderControls = ({
   activeTool,
-  onToolChange
+  onToolChange,
+  onFinishBuilding,
+  hasBuiltElements
 }: RoomBuilderControlsProps) => {
   return (
     <Card className="p-3 bg-card/90 border-border/50">
@@ -49,6 +53,17 @@ export const RoomBuilderControls = ({
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
+
+      {hasBuiltElements && (
+        <Button
+          variant="default"
+          size="sm"
+          onClick={onFinishBuilding}
+          className="w-full mt-2"
+        >
+          Accept & Finish
+        </Button>
+      )}
 
       {activeTool && (
         <div className="mt-2 text-xs text-muted-foreground">

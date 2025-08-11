@@ -19,6 +19,8 @@ interface AdminMenuProps {
   showRoomBuilder?: boolean;
   roomBuilderActiveTool?: 'wall' | 'door' | 'delete' | null;
   onRoomBuilderToolChange?: (tool: 'wall' | 'door' | 'delete' | null) => void;
+  hasBuiltElements?: boolean;
+  onFinishBuilding?: () => void;
 }
 
 export const AdminMenu = ({
@@ -29,7 +31,9 @@ export const AdminMenu = ({
   onRoomBuilder,
   showRoomBuilder = false,
   roomBuilderActiveTool = null,
-  onRoomBuilderToolChange
+  onRoomBuilderToolChange,
+  hasBuiltElements = false,
+  onFinishBuilding
 }: AdminMenuProps) => {
   return (
     <DropdownMenu>
@@ -58,13 +62,15 @@ export const AdminMenu = ({
         </DropdownMenuItem>
         
         {/* Room Builder Controls - Show when active */}
-        {showRoomBuilder && onRoomBuilderToolChange && (
+        {showRoomBuilder && onRoomBuilderToolChange && onFinishBuilding && (
           <>
             <DropdownMenuSeparator />
             <div className="px-2 py-2">
               <RoomBuilderControls
                 activeTool={roomBuilderActiveTool}
                 onToolChange={onRoomBuilderToolChange}
+                onFinishBuilding={onFinishBuilding}
+                hasBuiltElements={hasBuiltElements}
               />
             </div>
           </>
