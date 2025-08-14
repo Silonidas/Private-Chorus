@@ -34,6 +34,8 @@ interface TabletopViewProps {
   onRoomCreated: (roomId: string) => void;
   activeTool?: 'wall' | 'door' | 'delete' | null;
   onToolChange?: (tool: 'wall' | 'door' | 'delete' | null) => void;
+  roomElements?: RoomElement[];
+  onRoomElementsChange?: (elements: RoomElement[]) => void;
   hasBuiltElements?: boolean;
   onFinishBuilding?: () => void;
 }
@@ -56,6 +58,8 @@ export const TabletopView = ({
   onRoomCreated,
   activeTool = null,
   onToolChange,
+  roomElements = [],
+  onRoomElementsChange,
   hasBuiltElements = false,
   onFinishBuilding
 }: TabletopViewProps) => {
@@ -63,7 +67,6 @@ export const TabletopView = ({
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
   const [isMoving, setIsMoving] = useState(false);
   const animationRef = useRef<number>();
-  const [roomElements, setRoomElements] = useState<RoomElement[]>([]);
   const [isBuildingMode, setIsBuildingMode] = useState(false);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId);
@@ -204,15 +207,17 @@ export const TabletopView = ({
 
   // Handle knocking on doors
   const handleKnockDoor = (doorId: string, playerId: string) => {
-    setRoomElements(prev => prev.map(el => {
-      if (el.id === doorId && el.type === 'door') {
-        const door = el as any;
-        if (!door.knockRequests.includes(playerId)) {
-          return { ...door, knockRequests: [...door.knockRequests, playerId] };
+    if (onRoomElementsChange) {
+      onRoomElementsChange(roomElements.map(el => {
+        if (el.id === doorId && el.type === 'door') {
+          const door = el as any;
+          if (!door.knockRequests.includes(playerId)) {
+            return { ...door, knockRequests: [...door.knockRequests, playerId] };
+          }
         }
-      }
-      return el;
-    }));
+        return el;
+      }));
+    }
   };
 
   // Get current player's room info
@@ -386,19 +391,19 @@ export const TabletopView = ({
                 </div>
               )}
 
-              {/* Room Builder Component */}
-              {showRoomBuilder && (
+              {/* Room Builder Component - Always render when there are elements or building */}
+              {(showRoomBuilder || roomElements.length > 0) && (
                 <RoomBuilder
                   isAdmin={isAdmin}
                   elements={roomElements}
-                  onElementsChange={setRoomElements}
+                  onElementsChange={onRoomElementsChange || (() => {})}
                   onKnockDoor={handleKnockDoor}
                   currentPlayerId={currentPlayerId}
                   canvasWidth={CANVAS_WIDTH}
                   canvasHeight={CANVAS_HEIGHT}
                   onBuildingStateChange={setIsBuildingMode}
                   onRoomCreated={onRoomCreated}
-                  activeTool={activeTool}
+                  activeTool={showRoomBuilder ? activeTool : null}
                   onToolChange={onToolChange}
                 />
               )}

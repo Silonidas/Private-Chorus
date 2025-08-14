@@ -60,6 +60,7 @@ const Index = () => {
   const [showRoomBuilder, setShowRoomBuilder] = useState(false);
   const [roomChannels, setRoomChannels] = useState<Channel[]>([]);
   const [roomBuilderActiveTool, setRoomBuilderActiveTool] = useState<'wall' | 'door' | 'delete' | null>(null);
+  const [roomElements, setRoomElements] = useState<any[]>([]);
   
   // Tabletop view state
   const [players, setPlayers] = useState<Player[]>([
@@ -356,7 +357,7 @@ const Index = () => {
                   showRoomBuilder={showRoomBuilder}
                   roomBuilderActiveTool={roomBuilderActiveTool}
                   onRoomBuilderToolChange={setRoomBuilderActiveTool}
-                  hasBuiltElements={roomChannels.length > 0}
+                  hasBuiltElements={roomElements.length > 0}
                   onFinishBuilding={() => {
                     setShowRoomBuilder(false);
                     setRoomBuilderActiveTool(null);
@@ -472,7 +473,9 @@ const Index = () => {
                 onRoomCreated={handleRoomCreated}
                 activeTool={roomBuilderActiveTool}
                 onToolChange={setRoomBuilderActiveTool}
-                hasBuiltElements={roomChannels.length > 0}
+                roomElements={roomElements}
+                onRoomElementsChange={setRoomElements}
+                hasBuiltElements={roomElements.length > 0}
                 onFinishBuilding={() => {
                   setShowRoomBuilder(false);
                   setRoomBuilderActiveTool(null);
