@@ -66,20 +66,29 @@ export function canPlayerMoveTo(
   const walls = elements.filter(el => el.type === 'wall') as Wall[];
   const doors = elements.filter(el => el.type === 'door') as Door[];
 
-  // Check collision with walls
-  for (const wall of walls) {
-    if (lineIntersectsWall(player.x, player.y, newX, newY, wall)) {
-      return { canMove: false, adjustedX: player.x, adjustedY: player.y };
+  // First check if we're passing through any doors
+  let passingThroughUnlockedDoor = false;
+  for (const door of doors) {
+    if (lineIntersectsDoor(player.x, player.y, newX, newY, door)) {
+      if (door.isLocked) {
+        // Locked door blocks movement
+        return { canMove: false, adjustedX: player.x, adjustedY: player.y };
+      } else {
+        // Unlocked door allows passage
+        passingThroughUnlockedDoor = true;
+      }
     }
   }
 
-  // Check collision with locked doors
-  for (const door of doors) {
-    if (lineIntersectsDoor(player.x, player.y, newX, newY, door)) {
-      // Only block movement if the door is locked
-      if (door.isLocked) {
-        return { canMove: false, adjustedX: player.x, adjustedY: player.y };
-      }
+  // If passing through an unlocked door, allow movement regardless of walls
+  if (passingThroughUnlockedDoor) {
+    return { canMove: true, adjustedX: newX, adjustedY: newY };
+  }
+
+  // Check collision with walls only if not passing through unlocked door
+  for (const wall of walls) {
+    if (lineIntersectsWall(player.x, player.y, newX, newY, wall)) {
+      return { canMove: false, adjustedX: player.x, adjustedY: player.y };
     }
   }
 
