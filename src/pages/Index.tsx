@@ -358,14 +358,14 @@ const Index = () => {
                   roomBuilderActiveTool={roomBuilderActiveTool}
                   onRoomBuilderToolChange={setRoomBuilderActiveTool}
                   hasBuiltElements={roomElements.length > 0}
-                  onFinishBuilding={() => {
-                    setShowRoomBuilder(false);
-                    setRoomBuilderActiveTool(null);
-                    toast({
-                      title: "Room Building Complete",
-                      description: "Your room has been saved and is now available.",
-                    });
-                  }}
+                   onFinishBuilding={() => {
+                     setShowRoomBuilder(false);
+                     setRoomBuilderActiveTool(null);
+                     toast({
+                       title: "Room Building Complete",
+                       description: "Your room has been saved and is now available.",
+                     });
+                   }}
                 />
               }
             />
@@ -476,14 +476,14 @@ const Index = () => {
                 roomElements={roomElements}
                 onRoomElementsChange={setRoomElements}
                 hasBuiltElements={roomElements.length > 0}
-                onFinishBuilding={() => {
-                  setShowRoomBuilder(false);
-                  setRoomBuilderActiveTool(null);
-                  toast({
-                    title: "Room Building Complete",
-                    description: "Your room has been saved and is now available.",
-                  });
-                }}
+                 onFinishBuilding={() => {
+                   setShowRoomBuilder(false);
+                   setRoomBuilderActiveTool(null);
+                   toast({
+                     title: "Room Building Complete",
+                     description: "Your room has been saved and is now available.",
+                   });
+                 }}
               />
             )}
           </div>
