@@ -76,7 +76,8 @@ export function canPlayerMoveTo(
   // Check collision with locked doors
   for (const door of doors) {
     if (lineIntersectsDoor(player.x, player.y, newX, newY, door)) {
-      if (door.isLocked || !door.isOpen) {
+      // Only block movement if the door is locked
+      if (door.isLocked) {
         return { canMove: false, adjustedX: player.x, adjustedY: player.y };
       }
     }
