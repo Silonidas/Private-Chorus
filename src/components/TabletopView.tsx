@@ -70,6 +70,13 @@ export const TabletopView = ({
   const [isBuildingMode, setIsBuildingMode] = useState(false);
 
   const currentPlayer = players.find(p => p.id === currentPlayerId);
+
+  // Reset building mode when room builder is closed
+  useEffect(() => {
+    if (!showRoomBuilder) {
+      setIsBuildingMode(false);
+    }
+  }, [showRoomBuilder]);
   const rooms = useRoomDetection(players, roomElements, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   // Calculate proximity-based volume with room isolation

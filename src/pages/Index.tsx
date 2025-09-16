@@ -235,11 +235,13 @@ const Index = () => {
 
   const handleRoomBuilder = () => {
     setActiveView("tabletop");
-    setShowRoomBuilder(!showRoomBuilder);
-    toast({
-      title: showRoomBuilder ? "Room Builder Disabled" : "Room Builder Enabled",
-      description: showRoomBuilder ? "Room building mode is now off." : "Room building mode is now active.",
-    });
+    if (!showRoomBuilder) {
+      setShowRoomBuilder(true);
+      toast({
+        title: "Room Builder Enabled",
+        description: "Room building mode is now active.",
+      });
+    }
   };
 
   const handleRoomCreated = (roomId: string) => {
